@@ -1,0 +1,10 @@
+{
+	"autodeskProduct":	"Fusion360",
+	"type":	"script",
+	"author":	"Jeffrey Krauss jeffreykrauss@live.com",
+	"description":	{
+		"":	"Creates a stacked wavy bowl for laser cutting"
+	},
+	"supportedOS":	"windows|mac",
+	"editEnabled":	true
+}
