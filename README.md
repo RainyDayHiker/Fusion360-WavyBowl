@@ -19,7 +19,7 @@ I own a [Glowforge](https://glowforge.us/BHZAKLOU) laser cutter and was intrigue
 Most options should be obvious but a few notes:
 * Diameters are approximate - since the rings are waves, the diameter ends up as the middle of the wave.  Measure the result, if the outside diameter is important!
 * Amplitude % is the percentage of the ring width for the wave - basically, how wavy is it.  I found that it was needed to vary this across the bowl to get a pleasing shape, which is why there are two sliders.  The first is what the first ring will use, the second is for the last ring.
-* Curve: default is 0 which means all the rings are the same size.  The slider allows you to pick a percentage of size the first ring is from the average and then vary the size through the rings (the middle ring will be the same with all settings).  This gives the bowl more of a curve from the side view instead of the default 45 degree slope.  Definitely changes the look a bunch, sometimes not for the better.
+* Curve: default is 0 which means all the rings are the same size.  The slider allows you to pick a percentage of size the first ring is from the average and then vary the size through the rings (the middle ring will be the same with all settings).  This gives the bowl more of a curve from the side view instead of the default straight slope.  Definitely changes the look a bunch, sometimes not for the better.
 * Flatten: this allows for not stacking the resulting rings - depending on your method of exporting paths for laser cutting, this might be easier to use.
 * Be careful with the number of rings + waves you choose, processing time can get long...
 
