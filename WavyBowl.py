@@ -12,6 +12,7 @@ defaultWaves = 12
 defaultRings = 10
 defaultAmplitudeStartPct = 25
 defaultAmplitudeEndPct = 50
+defaultCurve = 0
 
 # global set of event handlers to keep them referenced for the duration of the command
 handlers = []
@@ -58,6 +59,8 @@ class WavyBowlCommandExecuteHandler(adsk.core.CommandEventHandler):
                     bowl.amplitudeEndPct = input.valueTwo
                 elif input.id == 'renderFlat':
                     bowl.renderFlat = input.value
+                elif input.id == 'curve':
+                    bowl.curve = input.valueOne
 
             bowl.buildWavyBowl()
             args.isValidResult = True
@@ -117,6 +120,9 @@ class WavyBowlCommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
             slider.valueOne = defaultAmplitudeStartPct
             slider.valueTwo = defaultAmplitudeEndPct
 
+            slider = inputs.addIntegerSliderCommandInput('curve', 'Curve', -75, 75)
+            slider.valueOne = defaultCurve
+
             inputs.addBoolValueInput('renderFlat', 'Flatten', True)
 
         except:
@@ -133,6 +139,7 @@ class WavyBowl:
         self._rings = defaultRings
         self._amplitudeStartPct = defaultAmplitudeStartPct
         self._amplitudeEndPct = defaultAmplitudeEndPct
+        self._curve = defaultCurve
         self._renderFlat = False
 
     #properties
@@ -193,6 +200,13 @@ class WavyBowl:
         self._amplitudeEndPct = value  
 
     @property
+    def curve(self):
+        return self._curve
+    @curve.setter
+    def curve(self, value):
+        self._curve = value  
+
+    @property
     def renderFlat(self):
         return self._renderFlat
     @renderFlat.setter
@@ -232,12 +246,18 @@ class WavyBowl:
         steps = self.waves * 4
         thetaStep = 2 * math.pi / steps
 
+        # Calculate the ring sizes for the bowl curve
+        startingRingSize = ringSize * (self.curve + 100) / 100
+        endingRingSize = (2 * ringSize) - startingRingSize
+        ringSizeStep = (endingRingSize - startingRingSize) / self.rings
+
+        radius = self.baseDiameter / 2
+
         for ring in range(0, self.rings + 1): # +1 since we need 2 circles to make 1 ring
             # Create an object collection for the points.
             points = adsk.core.ObjectCollection.create()
 
             # Define the points the spline with fit through.
-            radius = (self.baseDiameter/2) + (ring * ringSize)
             amplitude = ringSize * (self.amplitudeStartPct + (amplitudeStep * ring)) / 100
 
             # +1 to close the loop
@@ -249,6 +269,9 @@ class WavyBowl:
 
             # Create the spline.
             sketch.sketchCurves.sketchFittedSplines.add(points)
+
+            # Increment the radius for the next ring
+            radius += startingRingSize + (ring * ringSizeStep)
 
         # "globals" for the extrusions
         extrudes = newComp.features.extrudeFeatures
