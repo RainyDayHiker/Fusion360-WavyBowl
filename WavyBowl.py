@@ -119,7 +119,7 @@ class WavyBowlCommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
 
             inputs.addIntegerSpinnerCommandInput('rings', 'Rings', 1, 100, 1, defaultRings)
 
-            slider = inputs.addIntegerSliderCommandInput('amplitudePct', 'Amplitude %', 0, 100, True)
+            slider = inputs.addIntegerSliderCommandInput('amplitudePct', 'Amplitude %', 0, 200, True)
             slider.valueOne = defaultAmplitudeStartPct
             slider.valueTwo = defaultAmplitudeEndPct
 
