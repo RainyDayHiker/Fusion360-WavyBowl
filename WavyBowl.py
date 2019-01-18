@@ -5,8 +5,8 @@ import adsk.core, adsk.fusion, traceback
 import math
 
 defaultBowlName = 'WavyBowl'
-defaultBowlDiameter = 25.4
 defaultBaseDiameter = 5.08
+defaultRingSize = 1.27
 defaultMaterialThickness = 0.3175
 defaultWaves = 12
 defaultRings = 10
@@ -44,8 +44,8 @@ class WavyBowlCommandExecuteHandler(adsk.core.CommandEventHandler):
             for input in inputs:
                 if input.id == 'bowlName':
                     bowl.bowlName = input.value
-                elif input.id == 'bowlDiameter':
-                    bowl.bowlDiameter = unitsMgr.evaluateExpression(input.expression, "cm")
+                elif input.id == 'ringSize':
+                    bowl.ringSize = unitsMgr.evaluateExpression(input.expression, "cm")
                 elif input.id == 'baseDiameter':
                     bowl.baseDiameter = unitsMgr.evaluateExpression(input.expression, "cm")
                 elif input.id == 'materialThickness':
@@ -103,11 +103,11 @@ class WavyBowlCommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
             inputs = cmd.commandInputs
             inputs.addStringValueInput('bowlName', 'Bowl Name', defaultBowlName)
 
-            initBowlDiameter = adsk.core.ValueInput.createByReal(defaultBowlDiameter)
-            inputs.addValueInput('bowlDiameter', 'Bowl Diameter', 'in', initBowlDiameter)
-
             initBaseDiameter = adsk.core.ValueInput.createByReal(defaultBaseDiameter)
             inputs.addValueInput('baseDiameter', 'Base Diameter', 'in', initBaseDiameter)
+
+            initRingSize = adsk.core.ValueInput.createByReal(defaultRingSize)
+            inputs.addValueInput('ringSize', 'Ring Size', 'in', initRingSize)
 
             initMaterialThickness = adsk.core.ValueInput.createByReal(defaultMaterialThickness)
             inputs.addValueInput('materialThickness', 'Material Thickness', 'in', initMaterialThickness)
@@ -132,7 +132,7 @@ class WavyBowlCommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
 class WavyBowl:
     def __init__(self):
         self._bowlName = defaultBowlName
-        self._bowlDiameter = defaultBowlDiameter
+        self._ringSize = defaultRingSize
         self._baseDiameter = defaultBaseDiameter
         self._materialThickness = defaultMaterialThickness
         self._waves = defaultWaves
@@ -151,11 +151,11 @@ class WavyBowl:
         self._bowlName = value
 
     @property
-    def bowlDiameter(self):
-        return self._bowlDiameter
-    @bowlDiameter.setter
-    def bowlDiameter(self, value):
-        self._bowlDiameter = value
+    def ringSize(self):
+        return self._ringSize
+    @ringSize.setter
+    def ringSize(self, value):
+        self._ringSize = value
 
     @property
     def baseDiameter(self):
@@ -220,8 +220,6 @@ class WavyBowl:
             ui.messageBox('New component failed to create', 'New Component Failed')
             return
 
-        newComp.name = self._bowlName
-
          # Create a new sketch.
         sketches = newComp.sketches
         xzPlane = newComp.xZConstructionPlane
@@ -241,14 +239,13 @@ class WavyBowl:
         #   T is the angle, from 0 to 2 * PI (step count will be 4 * waves - center, top, center, bottom)
         #   n is number of waves on circle
 
-        ringSize = (self.bowlDiameter - self.baseDiameter) / 2 / self.rings
         amplitudeStep = (self._amplitudeEndPct - self.amplitudeStartPct) / self.rings
         steps = self.waves * 4
         thetaStep = 2 * math.pi / steps
 
         # Calculate the ring sizes for the bowl curve
-        startingRingSize = ringSize * (self.curve + 100) / 100
-        endingRingSize = (2 * ringSize) - startingRingSize
+        startingRingSize = self.ringSize * (self.curve + 100) / 100
+        endingRingSize = (2 * self.ringSize) - startingRingSize
         ringSizeStep = (endingRingSize - startingRingSize) / self.rings
 
         radius = self.baseDiameter / 2
@@ -258,7 +255,8 @@ class WavyBowl:
             points = adsk.core.ObjectCollection.create()
 
             # Define the points the spline with fit through.
-            amplitude = ringSize * (self.amplitudeStartPct + (amplitudeStep * ring)) / 100
+            amplitude = self.ringSize * (self.amplitudeStartPct + (amplitudeStep * ring)) / 100
+            diameter = 2 * (radius + amplitude)  # track the largest diameter we see
 
             # +1 to close the loop
             for step in range(0, steps + 1):
@@ -272,6 +270,8 @@ class WavyBowl:
 
             # Increment the radius for the next ring
             radius += startingRingSize + (ring * ringSizeStep)
+
+        newComp.name = self._bowlName + " (" + str("%.2f" % app.activeProduct.unitsManager.convert(diameter, "cm", "in")) + " in)"
 
         # "globals" for the extrusions
         extrudes = newComp.features.extrudeFeatures
