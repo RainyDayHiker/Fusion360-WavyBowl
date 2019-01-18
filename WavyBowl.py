@@ -12,6 +12,7 @@ defaultWaves = 12
 defaultRings = 10
 defaultAmplitudeStartPct = 25
 defaultAmplitudeEndPct = 50
+defaultRotationPct = 50
 defaultCurve = 0
 
 # global set of event handlers to keep them referenced for the duration of the command
@@ -61,6 +62,8 @@ class WavyBowlCommandExecuteHandler(adsk.core.CommandEventHandler):
                     bowl.renderFlat = input.value
                 elif input.id == 'curve':
                     bowl.curve = input.valueOne
+                elif input.id == 'rotationPct':
+                    bowl.rotationPct = input.valueOne
 
             bowl.buildWavyBowl()
             args.isValidResult = True
@@ -120,6 +123,9 @@ class WavyBowlCommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
             slider.valueOne = defaultAmplitudeStartPct
             slider.valueTwo = defaultAmplitudeEndPct
 
+            slider = inputs.addIntegerSliderCommandInput('rotationPct', 'Rotation %', 1, 99)
+            slider.valueOne = defaultRotationPct
+
             slider = inputs.addIntegerSliderCommandInput('curve', 'Curve', -75, 75)
             slider.valueOne = defaultCurve
 
@@ -139,6 +145,7 @@ class WavyBowl:
         self._rings = defaultRings
         self._amplitudeStartPct = defaultAmplitudeStartPct
         self._amplitudeEndPct = defaultAmplitudeEndPct
+        self._rotationPct = defaultRotationPct
         self._curve = defaultCurve
         self._renderFlat = False
 
@@ -198,6 +205,13 @@ class WavyBowl:
     @amplitudeEndPct.setter
     def amplitudeEndPct(self, value):
         self._amplitudeEndPct = value  
+
+    @property
+    def rotationPct(self):
+        return self._rotationPct
+    @rotationPct.setter
+    def rotationPct(self, value):
+        self._rotationPct = value  
 
     @property
     def curve(self):
@@ -279,8 +293,8 @@ class WavyBowl:
         distance = adsk.core.ValueInput.createByReal(self.materialThickness)
         distanceExtent = adsk.fusion.DistanceExtentDefinition.create(distance)
         bodiesForRotation = adsk.core.ObjectCollection.create()
-        rotation = adsk.core.Matrix3D.create()
-        rotation.setToRotation(2 * math.pi / (self.waves * 2), adsk.core.Vector3D.create(0,1,0), adsk.core.Point3D.create(0,0,0))
+        rotationStep = (2 * math.pi / self.waves) * self.rotationPct / 100
+        rotationAmount = 0
 
         # Create base
         extrude = extrudes.addSimple(sketch.profiles[0], distance, adsk.fusion.FeatureOperations.NewBodyFeatureOperation)
@@ -295,16 +309,19 @@ class WavyBowl:
             if not self.renderFlat:
                 extrudeInput.startExtent = adsk.fusion.OffsetStartDefinition.create(adsk.core.ValueInput.createByReal(self.materialThickness * (ring + 1)))
             extrude = extrudes.add(extrudeInput)
-            # Name the ring
             bodyRing = extrude.bodies.item(0)
-            bodyRing.name = "Ring " + str(ring)
             # Rotate the ring
             if not self.renderFlat:
-                if (ring % 2) == 0:
-                    bodiesForRotation.add(bodyRing)
-                    moveFeatureInput = moveFeatures.createInput(bodiesForRotation, rotation)
-                    moveFeatures.add(moveFeatureInput)
-                    bodiesForRotation.clear()
+                    rotationAmount += rotationStep
+                    if not math.isclose(rotationAmount, (2 * math.pi)): # Fusion doesn't like a transform that has a rotation of 0 degrees
+                        bodiesForRotation.add(bodyRing)
+                        rotation = adsk.core.Matrix3D.create()
+                        rotation.setToRotation(rotationAmount, adsk.core.Vector3D.create(0,1,0), adsk.core.Point3D.create(0,0,0))
+                        moveFeatureInput = moveFeatures.createInput(bodiesForRotation, rotation)
+                        moveFeatures.add(moveFeatureInput)
+                        bodiesForRotation.clear()
+            # Name the ring
+            bodyRing.name = "Ring " + str(ring) 
 
 def run(context):
     try:

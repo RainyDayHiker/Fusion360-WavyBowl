@@ -19,9 +19,20 @@ I own a [Glowforge](https://glowforge.us/BHZAKLOU) laser cutter and was intrigue
 Most options should be obvious but a few notes:
 * Amplitude % is the percentage of the ring width for the wave - basically, how wavy is it.  I found that it was needed to vary this across the bowl to get a pleasing shape, which is why there are two sliders.  The first is what the first ring will use, the second is for the last ring.
 * Curve: default is 0 which means all the rings are the same size.  The slider allows you to pick a percentage of size the first ring is from the average and then vary the size through the rings (the middle ring will be the same with all settings).  This gives the bowl more of a curve from the side view instead of the default straight slope.  Definitely changes the look a bunch, sometimes not for the better.
+* Rotation: the percentage of a "wave" that each ring should be rotated by.
 * Flatten: this allows for not stacking the resulting rings - depending on your method of exporting paths for laser cutting, this might be easier to use.
 * Overall bowl diameter is appended to the Component name so that you know how much material will be needed.
 * Be careful with the number of rings + waves you choose, processing time can get long...
+
+## A few models
+Using rotation of 25%:
+![Rotated wavy bowl](/images/bowl_rotation.png?raw=true)
+
+Using high curve and increased amplitude:
+![Curved wavy bowl](/images/bowl_curve.png?raw=true)
+
+Using high amplitude:
+![Lacy wavy bowl](/images/bowl_amplitude.png?raw=true)
 
 ## License
 No restrictions on using this to make objects to give away or sell - I don't need acknowledgement and you don't need my permission.  I'd love to hear about anything you do create with this script or if you have thoughts or suggestions for improvements! 
