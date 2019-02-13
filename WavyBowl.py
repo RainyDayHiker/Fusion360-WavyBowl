@@ -107,13 +107,23 @@ class WavyBowlCommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
             inputs.addStringValueInput('bowlName', 'Bowl Name', defaultBowlName)
 
             initBaseDiameter = adsk.core.ValueInput.createByReal(defaultBaseDiameter)
-            inputs.addValueInput('baseDiameter', 'Base Diameter', 'in', initBaseDiameter)
-
             initRingSize = adsk.core.ValueInput.createByReal(defaultRingSize)
-            inputs.addValueInput('ringSize', 'Ring Size', 'in', initRingSize)
-
             initMaterialThickness = adsk.core.ValueInput.createByReal(defaultMaterialThickness)
-            inputs.addValueInput('materialThickness', 'Material Thickness', 'in', initMaterialThickness)
+            # Default sizes are presuming inches for measurements, make them nicer if using metric
+            if app.activeProduct.unitsManager.defaultLengthUnits == 'mm' or app.activeProduct.unitsManager.defaultLengthUnits == 'm' or app.activeProduct.unitsManager.defaultLengthUnits == 'cm':
+                initBaseDiameter = adsk.core.ValueInput.createByReal(5)
+                initRingSize = adsk.core.ValueInput.createByReal(1)
+                initMaterialThickness = adsk.core.ValueInput.createByReal(.3)
+            else:
+                initBaseDiameter = adsk.core.ValueInput.createByReal(defaultBaseDiameter)
+                initRingSize = adsk.core.ValueInput.createByReal(defaultRingSize)
+                initMaterialThickness = adsk.core.ValueInput.createByReal(defaultMaterialThickness)
+
+            inputs.addValueInput('baseDiameter', 'Base Diameter', app.activeProduct.unitsManager.defaultLengthUnits, initBaseDiameter)
+
+            inputs.addValueInput('ringSize', 'Ring Size', app.activeProduct.unitsManager.defaultLengthUnits, initRingSize)
+
+            inputs.addValueInput('materialThickness', 'Material Thickness', app.activeProduct.unitsManager.defaultLengthUnits, initMaterialThickness)
 
             inputs.addIntegerSpinnerCommandInput('waves', 'Waves', 4, 100, 4, defaultWaves)
 
@@ -285,7 +295,7 @@ class WavyBowl:
             # Increment the radius for the next ring
             radius += startingRingSize + (ring * ringSizeStep)
 
-        newComp.name = self._bowlName + " (" + str("%.2f" % app.activeProduct.unitsManager.convert(diameter, "cm", "in")) + " in)"
+        newComp.name = self._bowlName + " (" + str("%.2f" % app.activeProduct.unitsManager.convert(diameter, "cm", app.activeProduct.unitsManager.defaultLengthUnits)) + " " + app.activeProduct.unitsManager.defaultLengthUnits +")"
 
         # "globals" for the extrusions
         extrudes = newComp.features.extrudeFeatures
